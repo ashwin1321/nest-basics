@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import {
+  ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -35,15 +37,16 @@ export class UsersController {
   @ApiOkResponse({ type: User, description: 'The found user' })
   @ApiNotFoundResponse({ description: 'User not found' })
   @Get(':id') // we can use :id to get the id from the URL
-  getUserById(@Param('id') id: string): User {
+  getUserById(@Param('id', ParseIntPipe) id: number): User {
     // we can use @Param('id') to get the id from the URL
-    const user = this.usersService.findById(Number(id));
+    const user = this.usersService.findById(id);
     if (!user) throw new NotFoundException(); // we can use the NotFoundException to return a 404 error if the user is not found
     // if (!user) throw new BadRequestException(); // we can use exceptions to return different status codes
     return user;
   }
 
   @ApiCreatedResponse({ type: User }) // we can use the ApiCreatedResponse decorator to add a response type to the Swagger document
+  @ApiBadRequestResponse({ description: 'Bad request' }) // we can use the ApiBadRequestResponse decorator to add a response type to the Swagger document
   @Post()
   createUser(@Body() body: CreateUserDto): User {
     return this.usersService.createUser(body);
